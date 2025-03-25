@@ -64,12 +64,13 @@ jobs:
 
     
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         with:
             # Specify the region here
           mask-password: false
           registry-type: private
           skip-logout: false
+          
           
       - name: Push Docker image to Amazon ECR
         run: |
