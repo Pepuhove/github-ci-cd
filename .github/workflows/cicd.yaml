@@ -25,7 +25,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
-          region: ${{ secrets.AWS_REGION }}
         with:
           args: >
             -Dsonar.projectKey=my-app-repo
@@ -51,7 +50,6 @@ jobs:
           echo "deb [signed-by=/etc/apt/keyrings/trivy.asc] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update -y
           sudo apt-get install -y trivy
-      
 
       - name: Run Trivy Scan
         run: trivy fs --format json -o fs-report.json .
@@ -62,16 +60,14 @@ jobs:
       - name: Run Gitleaks Code Scan
         run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
 
-    
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
         with:
-            # Specify the region here
+          region: ${{ secrets.AWS_REGION }}  
           mask-password: false
           registry-type: private
           skip-logout: false
-          
-          
+
       - name: Push Docker image to Amazon ECR
         run: |
           docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
