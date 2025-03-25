@@ -72,9 +72,14 @@ jobs:
             -Dsonar.projectName="My App Repo"
             -Dsonar.coverage.jacoco.xmlReportPaths=path/to/jacoco.xml
       
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
+            - name: Login to Amazon ECR
+            uses: aws-actions/amazon-ecr-login@v1
+            with:
+              region: ${{ secrets.AWS_REGION }}  # Specify the region here
+              mask-password: false
+              registry-type: private
+              skip-logout: false
+          
       - name: Push Docker image to Amazon ECR
         run: |
           docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
