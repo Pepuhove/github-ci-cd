@@ -18,7 +18,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci  # Faster and ensures a clean dependency installation
 
       - name: Run SonarQube scanner
         uses: SonarSource/sonarqube-scan-action@v5.0.0
@@ -29,11 +29,22 @@ jobs:
           args: >
             -Dsonar.projectKey=my-app-repo
             -Dsonar.projectName="My App Repo"
-            
+
+      - name: Debug AWS Region
+        run: echo "AWS_REGION is ${{ secrets.AWS_REGION }}"
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Build Docker image
         run: |
-                docker build -t my-app-repo .
-                docker images  
+          docker build -t my-app-repo .
+          docker images  
+
+      - name: Push Docker image to Amazon ECR
+        run: |
+          docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
 
   security-check:
     runs-on: ubuntu-latest
@@ -53,35 +64,18 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y trivy
 
-      - name: Run Trivy Scan
-        run: trivy fs --format json -o fs-report.json .
+      - name: Run Trivy Scan on Image
+        run: trivy image ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest --format json -o trivy-image-report.json
 
       - name: Install Gitleaks
         run: sudo apt install gitleaks -y
 
       - name: Run Gitleaks Code Scan
         run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
-        
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-   
-      - name: Debug AWS Region
-        run: echo "AWS_REGION is ${{ secrets.AWS_REGION }}"
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-
-          mask-password: false
-          registry-type: private
-          skip-logout: false
-
-
-      - name: Push Docker image to Amazon ECR
-        run: |
-          docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
