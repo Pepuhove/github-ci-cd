@@ -29,9 +29,11 @@ jobs:
           args: >
             -Dsonar.projectKey=my-app-repo
             -Dsonar.projectName="My App Repo"
-
+            
       - name: Build Docker image
-        run: docker build -t my-app-repo .
+        run: |
+                docker build -t my-app-repo .
+                docker images  
 
   security-check:
     runs-on: ubuntu-latest
