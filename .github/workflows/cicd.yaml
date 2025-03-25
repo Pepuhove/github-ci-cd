@@ -61,15 +61,17 @@ jobs:
       - name: Run Gitleaks Code Scan
         run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
 
-    #   - name: SonarQube Quality Gate check
-    #     id: sonarqube-quality-gate-check
-    #     uses: sonarsource/sonarqube-quality-gate-action@master
-    #     with:
-    #       pollingTimeoutSec: 600
-    #     env:
-    #       SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-    #       SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
-
+      - name: Run SonarQube scanner
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=my-app-repo
+            -Dsonar.projectName="My App Repo"
+            -Dsonar.coverage.jacoco.xmlReportPaths=path/to/jacoco.xml
+      
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
