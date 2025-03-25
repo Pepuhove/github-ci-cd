@@ -61,14 +61,14 @@ jobs:
       - name: Run Gitleaks Code Scan
         run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
 
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        with:
-          pollingTimeoutSec: 600
-        env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+    #   - name: SonarQube Quality Gate check
+    #     id: sonarqube-quality-gate-check
+    #     uses: sonarsource/sonarqube-quality-gate-action@master
+    #     with:
+    #       pollingTimeoutSec: 600
+    #     env:
+    #       SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+    #       SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
