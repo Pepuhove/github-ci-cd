@@ -26,15 +26,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
         with:
-          projectKey: 'my-app-repo'
-          projectName: 'My App Repo'
+          args: >
+            -Dsonar.projectKey=my-app-repo
+            -Dsonar.projectName="My App Repo"
 
       - name: Build Docker image
         run: docker build -t my-app-repo .
 
   security-check:
     runs-on: self-hosted
-    needs: build-and-deploy  # Ensure this job runs after build
+    needs: build-and-deploy
 
     steps:
       - name: Checkout code
@@ -63,15 +64,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
       - name: Login to Amazon ECR
-        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Push Docker image to Amazon ECR
         run: |
