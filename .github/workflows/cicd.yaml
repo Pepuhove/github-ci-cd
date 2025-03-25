@@ -1,4 +1,4 @@
-name: cicd pipeline
+name: cicdpipeline
 
 on:
   push:
