@@ -16,12 +16,13 @@ jobs:
         run: npm install
 
       - name: Run SonarQube scanner
-        uses: sonarqube/sonarqube-scan-action@v1
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
         with:
-          sonarqube-url: ${{ secrets.SONARQUBE_URL }}
-          sonarqube-token: ${{ secrets.SONARQUBE_TOKEN }}
-          sonarqube-projectKey: 'my-app-repo'
-          sonarqube-projectName: 'My App Repo'
+          projectKey: 'my-app-repo'
+          projectName: 'My App Repo'
 
       - name: Build Docker image
         run: docker build -t my-app-repo .
@@ -36,20 +37,17 @@ jobs:
 
       - name: Install Trivy
         run: |
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update -y
           sudo apt-get install -y trivy
 
       - name: Run Trivy Scan
-        run: trivy fs --format table -o fs-report.json .
+        run: trivy fs --format json -o fs-report.json .
 
       - name: Install Gitleaks
         run: sudo apt install gitleaks -y
 
       - name: Run Gitleaks Code Scan
-        run: gitleaks detect --source . --report-path gitleaks-report.json --format json
+        run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
 
       - name: SonarQube Quality Gate check
         id: sonarqube-quality-gate-check
@@ -61,13 +59,9 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
 
       - name: Login to Amazon ECR
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Push Docker image to Amazon ECR
         run: |
-          docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
+          docker tag my-app-repo:latest ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
