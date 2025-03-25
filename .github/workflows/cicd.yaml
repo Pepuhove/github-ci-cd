@@ -44,7 +44,13 @@ jobs:
       - name: Install Trivy
         run: |
           sudo apt-get update -y
+          sudo apt-get install -y wget curl gnupg lsb-release
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo tee /etc/apt/keyrings/trivy.asc
+          echo "deb [signed-by=/etc/apt/keyrings/trivy.asc] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
           sudo apt-get install -y trivy
+      
 
       - name: Run Trivy Scan
         run: trivy fs --format json -o fs-report.json .
