@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -47,7 +47,7 @@ jobs:
           docker push ${{ secrets.ECR_REPOSITORY_URL }}/my-app-repo:latest
 
   security-check:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-and-deploy
 
     steps:
