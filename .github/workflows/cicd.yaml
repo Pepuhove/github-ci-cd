@@ -25,6 +25,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+          region: ${{ secrets.AWS_REGION }}
         with:
           args: >
             -Dsonar.projectKey=my-app-repo
@@ -61,24 +62,14 @@ jobs:
       - name: Run Gitleaks Code Scan
         run: gitleaks detect --source . --verbose --redact --report-format=json --report-path=gitleaks-report.json
 
-      - name: Run SonarQube scanner
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+    
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
         with:
-          args: >
-            -Dsonar.projectKey=my-app-repo
-            -Dsonar.projectName="My App Repo"
-
-      
-            - name: Login to Amazon ECR
-            uses: aws-actions/amazon-ecr-login@v1
-            with:
-              region: ${{ secrets.AWS_REGION }}  # Specify the region here
-              mask-password: false
-              registry-type: private
-              skip-logout: false
+            # Specify the region here
+          mask-password: false
+          registry-type: private
+          skip-logout: false
           
       - name: Push Docker image to Amazon ECR
         run: |
